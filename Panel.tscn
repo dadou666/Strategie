@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=1]
+[gd_scene load_steps=7 format=1]
 
 [ext_resource path="res://debut.gd" type="Script" id=1]
 [ext_resource path="res://start.png" type="Texture" id=2]
 [ext_resource path="res://startDessus.png" type="Texture" id=3]
 [ext_resource path="res://Game.gd" type="Script" id=4]
 [ext_resource path="res://sortie.png" type="Texture" id=5]
+[ext_resource path="res://new.png" type="Texture" id=6]
 
 [node name="Game" type="Node"]
 
@@ -52,6 +53,58 @@ textures/normal = ExtResource( 5 )
 params/resize_mode = 0
 params/stretch_mode = 0
 
+[node name="Win" type="Label" parent="."]
+
+visibility/visible = false
+rect/scale = Vector2( 3, 3 )
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 304.0
+margin/top = 215.0
+margin/right = 361.0
+margin/bottom = 229.0
+text = "You WIN"
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="Loose" type="Label" parent="."]
+
+visibility/visible = false
+rect/scale = Vector2( 3, 3 )
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 301.0
+margin/top = 212.0
+margin/right = 362.0
+margin/bottom = 226.0
+text = "You Loose"
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="nouveau" type="TextureButton" parent="."]
+
+rect/scale = Vector2( 0.25, 0.25 )
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 386.0
+margin/top = 54.0
+margin/right = 898.0
+margin/bottom = 566.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+textures/normal = ExtResource( 6 )
+params/resize_mode = 0
+params/stretch_mode = 0
+
 [connection signal="pressed" from="demarer" to="partie" method="_on_demarer_pressed"]
 
 [connection signal="pressed" from="demarer" to="." method="_on_TextureButton_pressed"]
@@ -61,5 +114,7 @@ params/stretch_mode = 0
 [connection signal="pressed" from="partie/sortir" to="partie" method="_on_sortir_pressed"]
 
 [connection signal="pressed" from="partie/sortir" to="." method="_on_sortir_pressed"]
+
+[connection signal="pressed" from="nouveau" to="partie" method="_on_nouveau_pressed"]
 
 

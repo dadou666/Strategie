@@ -3,6 +3,8 @@ class Construire:
 	var nomBatiment=""
 	var x=0
 	var y=0
+	func saveData():
+		return { type="C",x=x,y=y,nomBatiment=nomBatiment}
 	func executer(game,joueur):
 		var energie=joueur.parametrage[nomBatiment].energie
 		if (joueur.energie < energie ):
@@ -21,13 +23,34 @@ class Construire:
 		
 class OrdreAttaque:
 	var nomBatiment
-	
+	var priorite
+	func typeOA():
+		return ""
+	func saveData():
+		return { type=typeOA(),priorite=priorite,nomBatiment=nomBatiment}
 class OrdreAttaqueSansRadar extends OrdreAttaque:
+	func typeOA():
+		return "OASR"
 	func executer(game,joueur):
-		pass
-class OrdreAttaqueSansRadar extends OrdreAttaque:
+		joueur.idxAction+=1
+		var oldIdx=joueur.ordreAttaqueLanceMissileSansRadar.find(nomBatiment)
+		var oldNomBatiment=joueur.ordreAttaqueLanceMissileSansRadar[priorite]
+		joueur.ordreAttaqueLanceMissileSansRadar[priorite]=nomBatiment
+		joueur.ordreAttaqueLanceMissileSansRadar[oldIdx]=oldNomBatiment
+		var grilleX=game.grilleX
+		var grilleSize=game.grilleSize
+		if (joueur == game.joueur):
+			game.gestionTexture.modifierOrdreAttaque(game,joueur.ordreAttaqueLanceMissileSansRadar,game.ordreAttaqueLanceMissileSansRadarSprite,(grilleX+1)*grilleSize)
+class OrdreAttaqueAvecRadar extends OrdreAttaque:
 	func executer(game,joueur):
-		pass
-class Amelioration:
-	var nomBatiment
-
+		joueur.idxAction+=1
+		var oldIdx=joueur.ordreAttaqueLanceMissileAvecRadar.find(nomBatiment)
+		var oldNomBatiment=joueur.ordreAttaqueLanceMissileAvecRadar[priorite]
+		joueur.ordreAttaqueLanceMissileAvecRadar[priorite]=nomBatiment
+		joueur.ordreAttaqueLanceMissileAvecRadar[oldIdx]=oldNomBatiment
+		var grilleX=game.grilleX
+		var grilleSize=game.grilleSize
+		if (joueur == game.joueur):
+			game.gestionTexture.modifierOrdreAttaque(game,joueur.ordreAttaqueLanceMissileAvecRadar,game.ordreAttaqueLanceMissileAvecRadarSprite,(grilleX+2)*grilleSize)
+	func typeOA():
+		return "OAAR"

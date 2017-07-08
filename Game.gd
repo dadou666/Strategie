@@ -19,7 +19,6 @@ var selectSprite
 var chiffresTextureA=[]
 var chiffresTextureB=[]
 var chiffresTextureC=[]
-var ordreAmeliorations = [] 
 var carreVertTexture
 var carreBleueTexture
 var nombre1=[]
@@ -70,7 +69,6 @@ func _input(ev):
 
 		var ix=int(ev.x/grilleSize)
 		var iy=int(ev.y/grilleSize)
-		print (" iy =",iy)
 		if (ix ==grilleX):
 			if (iy >= gestionTexture.nomBatiments.size()+1 || iy ==0):
 				return
@@ -81,21 +79,14 @@ func _input(ev):
 			if (iy >= gestionTexture.nomBatiments.size()+1 || iy ==0):
 				return
 			var nomBatiment =gestionTexture.nomBatiments[idxSelection-1]
-			var oldIdx=joueur.ordreAttaqueLanceMissileAvecRadar.find(nomBatiment)
-			var oldNomBatiment =joueur.ordreAttaqueLanceMissileAvecRadar[iy-1]
-			joueur.ordreAttaqueLanceMissileAvecRadar[iy-1]=nomBatiment
-			joueur.ordreAttaqueLanceMissileAvecRadar[oldIdx]=oldNomBatiment
-			gestionTexture.modifierOrdreAttaque(self,joueur.ordreAttaqueLanceMissileAvecRadar,ordreAttaqueLanceMissileAvecRadarSprite,(grilleX+1)*grilleSize)
+
+			joueur.ajouterOrdreAttaqueAvecRadar(nomBatiment,iy-1)
 			return
 		if (ix ==grilleX+1):
 			if (iy >= gestionTexture.nomBatiments.size()+1 || iy ==0):
 				return
 			var nomBatiment =gestionTexture.nomBatiments[idxSelection-1]
-			var oldIdx=joueur.ordreAttaqueLanceMissileSansRadar.find(nomBatiment)
-			var oldNomBatiment =joueur.ordreAttaqueLanceMissileSansRadar[iy-1]
-			joueur.ordreAttaqueLanceMissileSansRadar[iy-1]=nomBatiment
-			joueur.ordreAttaqueLanceMissileSansRadar[oldIdx]=oldNomBatiment
-			gestionTexture.modifierOrdreAttaque(self,joueur.ordreAttaqueLanceMissileSansRadar,ordreAttaqueLanceMissileSansRadarSprite,(grilleX+1)*grilleSize)
+			joueur.ajouterOrdreAttaqueSansRadar(nomBatiment,iy-1)
 			return
 		if (iy >= grilleY):
 			return
@@ -109,14 +100,15 @@ func _input(ev):
 			nomBatiment =gestionTexture.nomBatiments[idxSelection-1]
 			if (joueur.ameliorations.find(nomBatiment)>=0):
 				return
-			var oldIdx=ordreAmeliorations.find(nomBatiment)
+			var oldIdx=joueur.ordreAmeliorations.find(nomBatiment)
 			if (oldIdx< 0):
 				return
-			var oldNomBatiment =ordreAmeliorations[iy-1]
-			ordreAmeliorations[iy-1]=nomBatiment
-			ordreAmeliorations[oldIdx]=oldNomBatiment
-			gestionTexture.modifierOrdreAttaque(self,ordreAmeliorations,ordreAmeliorationsSprite,(grilleX+3)*grilleSize)
-			
+			var oldNomBatiment =joueur.ordreAmeliorations[iy-1]
+			joueur.ordreAmeliorations[iy-1]=nomBatiment
+			joueur.ordreAmeliorations[oldIdx]=oldNomBatiment
+			gestionTexture.modifierOrdreAttaque(self,joueur.ordreAmeliorations,ordreAmeliorationsSprite,(grilleX+3)*grilleSize)
+
+
 			return
 		if (iy >= grilleY):
 			return
@@ -161,7 +153,7 @@ func initialiserTextures():
 	pauseTexture=ImageTexture.new()
 	pauseTexture.load("pause.png")
 	
-func demarer():
+func demarer(nouveau):
 
 	if (joueur==null):
 		selection = Sprite.new()
@@ -190,10 +182,15 @@ func demarer():
 		adversaire.initialiserGrille(self,true,grilleX,grilleY,grilleSize)
 		gestionTexture.donnerOrdreAttaque(self,"LanceMissileSansRadar",joueur.ordreAttaqueLanceMissileSansRadar,ordreAttaqueLanceMissileSansRadarSprite,(grilleX+1)*grilleSize,carreBleueTexture)
 		gestionTexture.donnerOrdreAttaque(self,"LanceMissileAvecRadar",joueur.ordreAttaqueLanceMissileAvecRadar,ordreAttaqueLanceMissileAvecRadarSprite,(grilleX+2)*grilleSize,carreVertTexture)
-		gestionTexture.ajouterChoixAmelioration(joueur,self,(grilleX+3)*grilleSize,grilleSize,ordreAmeliorations,ordreAmeliorationsSprite)
+		gestionTexture.ajouterChoixAmelioration(joueur,self,(grilleX+3)*grilleSize,grilleSize,joueur.ordreAmeliorations,ordreAmeliorationsSprite)
 
 		joueur.adversaire = adversaire
 		adversaire.adversaire = joueur
+		adversaire.estAdversaire = true
+		joueur.estAdversaire = false
+		if (!nouveau):
+			joueur.charger()
+			adversaire.charger()
 	
 
 	
@@ -225,8 +222,8 @@ func _process(delta):
 func _on_demarer_pressed():
 
 	get_parent().get_node("demarer").hide()
-
-	demarer()
+	get_parent().get_node("nouveau").hide()
+	demarer(false)
 
 	var nd=get_node("sortir")
 	nd.show()
@@ -277,7 +274,27 @@ func addVisible(node):
 
 func _on_sortir_pressed():
 	get_parent().get_node("demarer").show()
+	joueur.sauvegarder()
+	adversaire.sauvegarder()
 	lstSprite=[]
 	addVisible(self)
 	set_process(false)
 	set_process_input(false)
+
+
+func _on_nouveau_pressed():
+	get_parent().get_node("demarer").hide()
+	get_parent().get_node("nouveau").hide()
+	demarer(true)
+
+	var nd=get_node("sortir")
+	nd.show()
+	var sz=nd.get_size()
+	
+	var scaleX =(grilleSize)/ sz.x
+	var scaleY =(grilleSize)/ sz.y
+	print("scaleX=",scaleX," scaleY=",scaleY)
+	nd.set_scale(Vector2(scaleX,scaleY))
+	var ix=grilleX
+	var iy=2*grilleY
+	nd.set_pos(Vector2(grilleSize*ix,iy*grilleSize))

@@ -10,6 +10,8 @@ var batEnCoursDeConstruction=null
 var ordreAttaqueLanceMissileAvecRadar=[]
 var ordreAttaqueLanceMissileSansRadar=[]
 var ameliorations= []
+var ordreAmeliorations= []
+
 var grille= {}
 var grilleInactif = {}
 var grilleProtege = {}
@@ -26,6 +28,46 @@ var batiment = preload("batiment.gd")
 var action = preload("action.gd")
 var parametrage=load("parametrage.gd").new()
 var adversaire
+func sauvegarder( ):
+	var savegame = File.new()
+	if (estAdversaire):
+    	savegame.open("user://adversaire.save", File.WRITE)
+	else:
+		savegame.open("user://joueur.save", File.WRITE)
+	var dataActions=[]
+	for a in actions:
+		dataActions.push_back(a.saveData())
+	var data = { actions=dataActions,ordreAmeliorations=ordreAmeliorations}
+	savegame.store_line(data.to_json())
+	savegame.close()
+func charger():
+	var savegame = File.new()
+	if (estAdversaire):
+    	savegame.open("user://adversaire.save", File.READ)
+	else:
+		savegame.open("user://joueur.save", File.READ)
+	var data = {}
+	data.parse_json(savegame.get_line())
+	ordreAmeliorations = data.ordreAmeliorations
+	actions=[]
+	for a in data.actions:
+		if (a.type=="C"):
+			var action= action.Construire.new()
+			action.x=a.x
+			action.y=a.y
+			action.nomBatiment=a.nomBatiment
+			actions.push_back(action)
+		if (a.type=="OAAR"):
+			var action=action.OrdreAttaqueAvecRadar.new()
+			action.nomBatiment=a.nomBatiment
+			action.priorite = a.priorite
+			actions.push_back(action)
+		if (a.type=="OASR"):
+			var action=action.OrdreAttaqueSansRadar.new()
+			action.nomBatiment=a.nomBatiment
+			action.priorite = a.priorite
+			actions.push_back(action)
+	print(" data=",data)
 func nomJoueur( nom ):
 	nomJoueur = nom
 func afficher():
@@ -71,6 +113,19 @@ func creerBatiment(game,ix,iy,nomBatiment):
 	spritePauseBat.hide()
 	spritePause.hide()
 	return bat
+
+func ajouterOrdreAttaqueSansRadar(nomBatiment , priorite):
+	var ordreAttaque = action.OrdreAttaqueSansRadar.new()
+	ordreAttaque.priorite =priorite
+	ordreAttaque.nomBatiment=nomBatiment
+	actions.push_back(ordreAttaque)
+
+func ajouterOrdreAttaqueAvecRadar(nomBatiment , priorite):
+	var ordreAttaque = action.OrdreAttaqueAvecRadar.new()
+	ordreAttaque.priorite =priorite
+	ordreAttaque.nomBatiment=nomBatiment
+	actions.push_back(ordreAttaque) 
+	
 	
 func ajouterConstruire(game,ix,iy,nomBatiment):
 	var clef = " " +str(ix)+"_"+str(iy)

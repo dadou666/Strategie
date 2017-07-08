@@ -237,11 +237,11 @@ class Controlleur extends Batiment:
 			activerPos(joueur,px,py+1)
 			activerPos(joueur,px,py-1)
 
-class Merveille extends Batiment:
+class Merveille extends BatimentRecharge:
 	func afficherNom():
 		return "Merveille"
 	func executer(joueur):
-		estActif =true
+		pass
 		
 class Laboratoire extends Batiment:
 	func afficherNom():
