@@ -178,6 +178,14 @@ class GestionTextures:
 			carreVert.set_scale(game.ajusterTexture(0,0,game.carreBleueTexture))
 			carreVert.set_pos(pos)
 			game.add_child(carreVert)
+			var spriteOk = Sprite.new()
+			var texOk= game.okTexture
+			spriteOk.set_pos(pos)
+			spriteOk.set_scale(game.ajusterTexture(10,10,texOk))
+			spriteOk.set_texture(texOk)
+			game.add_child(spriteOk)
+			game.ordreAmeliorationsFaiteSprite.push_back(spriteOk)
+			spriteOk.hide()
 
 class Generateur extends BatimentRecharge:
 
@@ -186,12 +194,15 @@ class Generateur extends BatimentRecharge:
 	func recharger(joueur):
 		compteurRecharge=9
 		joueur.energie+=4
-		print(" generation.. ")
+
 	
-class LanceMissileSansRadar extends Batiment:
+class LanceMissileSansRadar extends BatimentRecharge:
 	var puissance=0
+	var missileDeplacement
 	func afficherNom():
 		return "LanceMissileSansRadar"
+	func recharger(joueur):
+		joueur.listeLanceMissileSansRadarDisponnible.push_back(self)
 
 
 class LanceMissileAvecRadar extends Batiment:
@@ -242,10 +253,14 @@ class Merveille extends BatimentRecharge:
 		return "Merveille"
 	func executer(joueur):
 		pass
+	func recharger(joueur):
+		joueur.nombreMerveille+=1
 		
-class Laboratoire extends Batiment:
+class Laboratoire extends BatimentRecharge:
 	func afficherNom():
 		return "Laboratoire"
+	func recharger(joueur):
+		joueur.listeLaboratoireDisponible.push_back(self)
 
 class Constructeur extends BatimentRecharge:
 	func afficherNom():
@@ -269,3 +284,9 @@ class Radar extends Batiment:
 	func executer(joueur):
 		if (estActif && compteur==0):
 			joueur.nombreDeRadar+=1
+
+class MissileDeplacement:
+	var distance
+	var direction
+	var posCible
+

@@ -14,6 +14,7 @@ var idxSelection=1
 var selection
 var croixTexture
 var cibleRadarTexture
+var okTexture
 var pauseTexture
 var selectSprite
 var chiffresTextureA=[]
@@ -25,6 +26,7 @@ var nombre1=[]
 var parametrage=load("parametrage.gd")
 var lstSprite=[]
 var ordreAmeliorationsSprite= []
+var ordreAmeliorationsFaiteSprite= []
 var ordreAttaqueLanceMissileAvecRadarSprite=[]
 var ordreAttaqueLanceMissileSansRadarSprite=[]
 func afficherNombre1( n ) :
@@ -135,6 +137,8 @@ func initialiserTextures():
 	carreVertTexture.load("carreVert.png")
 	carreBleueTexture = ImageTexture.new()
 	carreBleueTexture.load("carreBleue.png")
+	okTexture = ImageTexture.new()
+	okTexture.load("ok.png")
 	
 	for i in range(10):
 		var tx = ImageTexture.new()
@@ -154,7 +158,8 @@ func initialiserTextures():
 	pauseTexture.load("pause.png")
 	
 func demarer(nouveau):
-
+	get_parent().get_node("Loose").hide()
+	get_parent().get_node("Win").hide()
 	if (joueur==null):
 		selection = Sprite.new()
 		selection.set_texture(itSelection)
@@ -197,8 +202,7 @@ func demarer(nouveau):
 		
 		joueur.nomJoueur("joueur")
 		adversaire.nomJoueur("adversaire")
-		adversaire.creerBatiment(self,4,grilleY-1,"Socle")
-		adversaire.creerBatiment(self,5,grilleY-1,"Socle")
+
 		set_process(true)
 		set_process_input(true)
 		return
@@ -211,12 +215,38 @@ func demarer(nouveau):
 
 
 func _process(delta):
-	joueur.executer(self)
+	if (joueur.executer(self)):
+		get_parent().get_node("Win").show()
+		get_parent().get_node("demarer").show()
+		for spriteOk in ordreAmeliorationsFaiteSprite:
+			spriteOk.hide()
+		lstSprite=[]
+		joueur.raz()
+		adversaire.raz()
+		addVisible(self)
+		print(" nombre visible=",lstSprite.size())
+		set_process(false)
+		set_process_input(false)
+		var tmp=adversaire
+		adversaire=joueur
+		joueur=tmp
+		adversaire.estAdversaire=true
+		joueur.estAdversaire=false
+		return
+		
 	afficherNombre1(joueur.energie)
-	adversaire.executer(self)
+	if (adversaire.executer(self)):
+		get_parent().get_node("Loose").show()
+		get_parent().get_node("demarer").show()
+		lstSprite=[]
+		joueur.raz()
+		adversaire.raz()
+		addVisible(self)
 
+		set_process(false)
+		set_process_input(false)
 
-
+		
 
 
 func _on_demarer_pressed():
@@ -271,6 +301,7 @@ func addVisible(node):
 		else:
 			addVisible(child)
 	
+
 
 func _on_sortir_pressed():
 	get_parent().get_node("demarer").show()

@@ -3,6 +3,7 @@ extends Object
 var energie=250
 var estAdversaire = false
 var imageTexture
+var nombreMerveille=0
 var nomJoueur=""
 var nombreDeRadar=0
 var listeConstructeur=[]
@@ -11,7 +12,9 @@ var ordreAttaqueLanceMissileAvecRadar=[]
 var ordreAttaqueLanceMissileSansRadar=[]
 var ameliorations= []
 var ordreAmeliorations= []
-
+var idxOrdreAmelioration=0
+var listeLaboratoireDisponible=[]
+var listeLanceMissileSansRadarDisponnible=[]
 var grille= {}
 var grilleInactif = {}
 var grilleProtege = {}
@@ -21,6 +24,7 @@ var grillePause= {}
 var grillePauseBat= {}
 var grilleBatiment= {}
 var grilleRecharge={}
+var grilleAttente={}
 var actions=[]
 var periodeEnergie=0
 var idxAction=0
@@ -28,6 +32,36 @@ var batiment = preload("batiment.gd")
 var action = preload("action.gd")
 var parametrage=load("parametrage.gd").new()
 var adversaire
+func raz():
+	grille={}
+	listeLaboratoireDisponible=[]
+	listeLanceMissileSansRadarDisponnible=[]
+	idxAction=0
+	idxOrdreAmelioration=0
+	energie=250
+	ameliorations=[]
+	nombreMerveille=0
+	nombreDeRadar=0
+	for sp in grilleRadar.values():
+		sp.hide()
+	for sp in grillePause.values():
+		sp.hide()
+	for sp in grillePauseBat.values():
+		sp.hide()
+	for sp in grilleRadar.values():
+		sp.hide()
+	for sp in grilleBatiment.values():
+		sp.hide()
+	for sp in grilleAttente.values():
+		sp.hide()
+	for sp in grilleProtege.values():
+		sp.hide()
+	for sp in grilleInactif.values():
+		sp.hide()
+	for sp in grilleRecharge.values():
+		sp.hide()
+	for sp in grilleCompteur.values():
+		sp.hide()
 func sauvegarder( ):
 	var savegame = File.new()
 	if (estAdversaire):
@@ -52,26 +86,35 @@ func charger():
 	actions=[]
 	for a in data.actions:
 		if (a.type=="C"):
-			var action= action.Construire.new()
-			action.x=a.x
-			action.y=a.y
-			action.nomBatiment=a.nomBatiment
-			actions.push_back(action)
+			var actionC= action.Construire.new()
+			actionC.x=a.x
+			actionC.y=a.y
+			actionC.nomBatiment=a.nomBatiment
+			actions.push_back(actionC)
 		if (a.type=="OAAR"):
-			var action=action.OrdreAttaqueAvecRadar.new()
-			action.nomBatiment=a.nomBatiment
-			action.priorite = a.priorite
-			actions.push_back(action)
+			var actionOA=action.OrdreAttaqueAvecRadar.new()
+			actionOA.nomBatiment=a.nomBatiment
+			actionOA.priorite = a.priorite
+			actions.push_back(actionOA)
 		if (a.type=="OASR"):
-			var action=action.OrdreAttaqueSansRadar.new()
-			action.nomBatiment=a.nomBatiment
-			action.priorite = a.priorite
-			actions.push_back(action)
+			var actionOA=action.OrdreAttaqueSansRadar.new()
+			actionOA.nomBatiment=a.nomBatiment
+			actionOA.priorite = a.priorite
+			actions.push_back(actionOA)
 	print(" data=",data)
 func nomJoueur( nom ):
 	nomJoueur = nom
 func afficher():
 	print(" joueur=",nomJoueur)
+func batimentsParType():
+	var r= {}
+	for bat in grille.values():
+		var nomBatiment = bat.afficherNom()
+		if (r.has(nomBatiment)):
+			r[nomBatiment].push_back(bat)
+		else:
+			r[nomBatiment]=[bat]
+		return r
 
 
 func contient(ix,iy):
@@ -112,6 +155,8 @@ func creerBatiment(game,ix,iy,nomBatiment):
 	var spritePauseBat = donnerSprite(game,clef,grillePauseBat)
 	spritePauseBat.hide()
 	spritePause.hide()
+	var spriteAttente = donnerSprite(game,clef,grilleAttente)
+	spriteAttente.hide()
 	return bat
 
 func ajouterOrdreAttaqueSansRadar(nomBatiment , priorite):
@@ -131,6 +176,14 @@ func ajouterConstruire(game,ix,iy,nomBatiment):
 	var clef = " " +str(ix)+"_"+str(iy)
 	var spritePause = donnerSprite(game,clef,grillePause)
 	var spritePauseBat = donnerSprite(game,clef,grillePauseBat)
+	var spriteAttente = donnerSprite(game,clef,grilleAttente)
+	if (spriteAttente.is_visible()):
+		return
+		
+	if (grille.has(clef)):
+		var bat=grille[clef]
+		if (bat.compteur > 0):
+			return
 	if (spritePause.is_visible() && spritePauseBat.is_visible()):
 		return
 	var construire = action.Construire.new()
@@ -138,23 +191,14 @@ func ajouterConstruire(game,ix,iy,nomBatiment):
 	construire.x=ix
 	construire.y=iy
 	actions.push_back(construire)
-	
-	var sprite = spritePause
-	var spriteBat =spritePauseBat
-	
-	var pos=position(ix,iy,game)
 	var tx =game.gestionTexture.imageTextures[nomBatiment]
-	spriteBat.set_texture(tx)
-	spriteBat.set_pos(pos)
-	spriteBat.set_scale(game.ajusterTexture(10,10,tx))
+	var pos=position(ix,iy,game)
+	pos=pos+Vector2(-20,20)
+	spriteAttente.set_scale(game.ajusterTexture(40,40,tx))
+	spriteAttente.set_texture(tx)
+	spriteAttente.set_pos(pos)
+	spriteAttente.show()
 	
-	sprite.set_texture(game.pauseTexture)
-	sprite.set_scale(game.ajusterTexture(40,40,game.pauseTexture))
-	
-	sprite.set_pos(pos)
-	sprite.set_z(4)
-	sprite.show()
-	spriteBat.show()
 
 	
 func donnerSpriteCompteur(game,bat):
@@ -283,7 +327,29 @@ func executer(game):
 		actions[idxAction].executer(game,self)
 		
 	adversaire.activerRadar(game,nombreDeRadar)
-	pass
+	if (nombreMerveille >= parametrage.nombreMerveillePourVictoire):
+		return true
+	var tmpListeLaboratoireDisponible=[]
+	for bat in listeLaboratoireDisponible:
+		if (bat.vie > 0):
+			tmpListeLaboratoireDisponible.push_back(bat)
+	listeLaboratoireDisponible = tmpListeLaboratoireDisponible
+	tmpListeLaboratoireDisponible=[]
+	if (idxOrdreAmelioration < ordreAmeliorations.size()):
+		var nomBatimentPourAmelioration=ordreAmeliorations[idxOrdreAmelioration]
+		var coutAmelioration=parametrage[nomBatimentPourAmelioration].coutAmelioration 
+		if (coutAmelioration  <= listeLaboratoireDisponible.size()):
+			for i in range(coutAmelioration,listeLaboratoireDisponible.size()):
+				tmpListeLaboratoireDisponible.push_back(listeLaboratoireDisponible[i])
+			for i in range(0,coutAmelioration):
+				var bat=listeLaboratoireDisponible[i]
+				bat.compteurRecharge=9
+			listeLaboratoireDisponible=tmpListeLaboratoireDisponible
+			ameliorations.push_back(nomBatimentPourAmelioration)
+			if (!estAdversaire):
+				game.ordreAmeliorationsFaiteSprite[idxOrdreAmelioration].show()
+			idxOrdreAmelioration+=1
+	return false
 func initialiserGrille(game,ea,grilleX,grilleY,tg):
 	estAdversaire =ea
 	imageTexture=ImageTexture.new()

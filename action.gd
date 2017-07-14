@@ -8,7 +8,28 @@ class Construire:
 	func executer(game,joueur):
 		var energie=joueur.parametrage[nomBatiment].energie
 		if (joueur.energie < energie ):
-			return
+				var clef = " " +str(x)+"_"+str(y)
+				var spritePause = joueur.donnerSprite(game,clef,joueur.grillePause)
+				var spritePauseBat = joueur.donnerSprite(game,clef,joueur.grillePauseBat)
+				var spriteAttente = joueur.donnerSprite(game,clef,joueur.grilleAttente)
+				spriteAttente.hide()
+				var sprite = spritePause
+				var spriteBat =spritePauseBat
+	
+				var pos=joueur.position(x,y,game)
+				var tx =game.gestionTexture.imageTextures[nomBatiment]
+				spriteBat.set_texture(tx)
+				spriteBat.set_pos(pos)
+				spriteBat.set_scale(game.ajusterTexture(10,10,tx))
+				
+				sprite.set_texture(game.pauseTexture)
+				sprite.set_scale(game.ajusterTexture(40,40,game.pauseTexture))
+				
+				sprite.set_pos(pos)
+				sprite.set_z(4)
+				sprite.show()
+				spriteBat.show()
+				return
 		joueur.energie-=energie
 		if (joueur.batEnCoursDeConstruction==null):
 			joueur.batEnCoursDeConstruction=joueur.creerBatiment(game,x,y,nomBatiment)
