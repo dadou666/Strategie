@@ -7,6 +7,9 @@ class Batiment:
 	var dureeCompteur=50
 	var x=0
 	var y=0
+	func clef():
+		var clef = " " +str(x)+"_"+str(y)
+		return clef
 	func dimCompteur():
 		return 40
 	func compteur():
@@ -194,23 +197,31 @@ class Generateur extends BatimentRecharge:
 	func recharger(joueur):
 		compteurRecharge=9
 		joueur.energie+=4
-
-	
-class LanceMissileSansRadar extends BatimentRecharge:
-	var puissance=0
+func orientationAngle(orientation):
+		if (orientation.y < 0):
+			return acos(orientation.x)
+		else:
+			return -acos(orientation.x)
+class LanceMissile extends BatimentRecharge:
 	var missileDeplacement
+	func dirigerVers(sprite, pos,bat ):
+		pass
+	func deplacer():
+		pass
+	func impact():
+		pass
+class LanceMissileSansRadar extends LanceMissile:
 	func afficherNom():
 		return "LanceMissileSansRadar"
 	func recharger(joueur):
 		joueur.listeLanceMissileSansRadarDisponnible.push_back(self)
 
 
-class LanceMissileAvecRadar extends Batiment:
-	var puissance=0
+class LanceMissileAvecRadar extends LanceMissile:
 	func afficherNom():
 		return "LanceMissileAvecRadar"
 
-class LanceMissilePremiereLigne extends Batiment:
+class LanceMissilePremiereLigne extends LanceMissile:
 	func afficherNom():
 		return "LanceMissilePremiereLigne"
 		
@@ -288,5 +299,5 @@ class Radar extends Batiment:
 class MissileDeplacement:
 	var distance
 	var direction
-	var posCible
+	var batCible
 

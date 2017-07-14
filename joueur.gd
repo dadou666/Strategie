@@ -15,6 +15,7 @@ var ordreAmeliorations= []
 var idxOrdreAmelioration=0
 var listeLaboratoireDisponible=[]
 var listeLanceMissileSansRadarDisponnible=[]
+var listeLanceMissileSansRadarEnDeplacement=[]
 var grille= {}
 var grilleInactif = {}
 var grilleProtege = {}
@@ -114,7 +115,7 @@ func batimentsParType():
 			r[nomBatiment].push_back(bat)
 		else:
 			r[nomBatiment]=[bat]
-		return r
+	return r
 
 
 func contient(ix,iy):
@@ -130,6 +131,26 @@ func position(x,y,game):
 
 	var r = Vector2(x*game.grilleSize+game.grilleSize/2,y*game.grilleSize+game.grilleSize/2)
 	return r
+
+func gererLanceMissileSansRadar():
+	var bats =adversaire.batimentsParType()
+	for nomBatiment in ordreAttaqueLanceMissileSansRadar:
+		if (bats.has(nomBatiment)):
+			var cibles = bats[nomBatiment]
+			if (cibles.size() > 0):
+				var idx=0
+				for lanceMissile in listeLanceMissileSansRadarDisponnible:
+					
+					var bat=cibles[idx]
+					lanceMissile.dirigerVers(grille[lanceMissile.clef()],adversaire.grille[bat.clef()].get_pos(),bat)
+					idx=idx+1
+					if (idx == cibles.size()):
+						idx=0
+				listeLanceMissileSansRadarEnDeplacement=listeLanceMissileSansRadarDisponnible
+				listeLanceMissileSansRadarDisponnible=[]
+				return
+	
+	
 
 func creerBatiment(game,ix,iy,nomBatiment):
 	var bat = game.lib[nomBatiment].new()
@@ -334,6 +355,10 @@ func executer(game):
 		if (bat.vie > 0):
 			tmpListeLaboratoireDisponible.push_back(bat)
 	listeLaboratoireDisponible = tmpListeLaboratoireDisponible
+	gererLanceMissileSansRadar()
+	for lanceMissile in listeLanceMissileSansRadarEnDeplacement:
+		lanceMissile.deplacer()
+	
 	tmpListeLaboratoireDisponible=[]
 	if (idxOrdreAmelioration < ordreAmeliorations.size()):
 		var nomBatimentPourAmelioration=ordreAmeliorations[idxOrdreAmelioration]
