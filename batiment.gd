@@ -1,12 +1,22 @@
 
 class Batiment:
 	var vie=0
+	var reconstruction=false
 	var estActif = false
 	var estProtege = false
 	var compteur=9
 	var dureeCompteur=50
 	var x=0
 	var y=0
+	func reparer(joueur,reparateur):
+		var vieMax=joueur.parametrage[afficherNom()].vie
+		if (vie < vieMax):
+			vie+=joueur.parametrage.reparation
+			if (vie > vieMax):
+				vie=vieMax
+			reparateur.compteurRecharge=9
+			return
+
 	func clef():
 		var clef = " " +str(x)+"_"+str(y)
 		return clef
@@ -31,6 +41,8 @@ class Batiment:
 			compteur-=1
 			var nomBatiment=afficherNom()
 			dureeCompteur=joueur.parametrage[nomBatiment].dureeCompteur
+			if (reconstruction):
+				dureeCompteur+=joueur.parametrage.reconstruction
 			return true
 		dureeCompteur=dureeCompteur-1
 		return false
@@ -197,25 +209,59 @@ class Generateur extends BatimentRecharge:
 	func recharger(joueur):
 		compteurRecharge=9
 		joueur.energie+=4
-func orientationAngle(orientation):
-		if (orientation.y < 0):
-			return acos(orientation.x)
+
+class MissileDeplacement:
+	var distance
+	var direction
+	var bat
+	var sprite
+	var vitesse
+	var spriteInitPos
+	func orientationAngle():
+		if (direction.y < 0):
+			return acos(direction.x)+3.14+3.14/2
 		else:
-			return -acos(orientation.x)
+			return -acos(direction.x)+3.14+3.14/2
+	func deplacer():
+		var newPos = sprite.get_pos()+direction
+		distance -= vitesse
+		sprite.set_pos(newPos)
+		if (distance <=0):
+			sprite.set_pos(spriteInitPos)
+			return true
+		return false
 class LanceMissile extends BatimentRecharge:
 	var missileDeplacement
 	func dirigerVers(sprite, pos,bat ):
+		missileDeplacement=MissileDeplacement.new()
+		missileDeplacement.vitesse=2.0
+		var direction= pos-sprite.get_pos()
+		missileDeplacement.spriteInitPos = sprite.get_pos()
+		missileDeplacement.distance =direction.length()
+		missileDeplacement.direction=direction.normalized()
+		sprite.set_rot(missileDeplacement.orientationAngle())
+		missileDeplacement.direction = missileDeplacement.direction * missileDeplacement.vitesse
+		missileDeplacement.bat=bat
+		missileDeplacement.sprite=sprite
+		sprite.set_z(6)
+		
 		pass
-	func deplacer():
-		pass
-	func impact():
-		pass
+	func deplacer(joueur,liste):
+		if (missileDeplacement.deplacer()):
+			compteurRecharge=9
+			impact(joueur)
+			return true
+		liste.push_back(self)
+		return false
+	func impact(joueur):
+		print(" impact ")
 class LanceMissileSansRadar extends LanceMissile:
 	func afficherNom():
 		return "LanceMissileSansRadar"
 	func recharger(joueur):
 		joueur.listeLanceMissileSansRadarDisponnible.push_back(self)
-
+	func impact(joueur):
+		missileDeplacement.bat.vie-=joueur.parametrage[afficherNom()].impact
 
 class LanceMissileAvecRadar extends LanceMissile:
 	func afficherNom():
@@ -279,9 +325,12 @@ class Constructeur extends BatimentRecharge:
 	func executer(joueur):
 		if (compteur==0 && compteurRecharge==0):
 			joueur.listeConstructeur.push_back(self)
-class Reparateur extends Batiment:
+class Reparateur extends BatimentRecharge:
 	func afficherNom():
 		return "Reparateur"
+	func executer(joueur):
+		if (compteur==0 && compteurRecharge==0):
+			joueur.listeReparateur.push_back(self)
 
 class Socle extends Batiment:
 	func afficherNom():
@@ -296,8 +345,5 @@ class Radar extends Batiment:
 		if (estActif && compteur==0):
 			joueur.nombreDeRadar+=1
 
-class MissileDeplacement:
-	var distance
-	var direction
-	var batCible
+
 

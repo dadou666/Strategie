@@ -3,6 +3,7 @@ class Construire:
 	var nomBatiment=""
 	var x=0
 	var y=0
+	var reconstruction=false
 	func saveData():
 		return { type="C",x=x,y=y,nomBatiment=nomBatiment}
 	func executer(game,joueur):
@@ -29,18 +30,23 @@ class Construire:
 				sprite.set_z(4)
 				sprite.show()
 				spriteBat.show()
-				return
-		joueur.energie-=energie
+				return false
+		
 		if (joueur.batEnCoursDeConstruction==null):
-			joueur.batEnCoursDeConstruction=joueur.creerBatiment(game,x,y,nomBatiment)
-			joueur.idxAction+=1
-			return
+			joueur.energie-=energie
+			joueur.batEnCoursDeConstruction=joueur.creerBatiment(game,x,y,nomBatiment,reconstruction)
+			if (!reconstruction):
+				joueur.idxAction+=1
+			return true
+
 		for bat in joueur.listeConstructeur:
 			if (bat.compteurRecharge==0):
 				bat.compteurRecharge=9
-				joueur.creerBatiment(game,x,y,nomBatiment)
-				joueur.idxAction+=1
-				return
+				joueur.energie-=energie
+				joueur.creerBatiment(game,x,y,nomBatiment,reconstruction)
+				if (!reconstruction):
+					joueur.idxAction+=1
+				return true
 		
 class OrdreAttaque:
 	var nomBatiment
