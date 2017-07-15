@@ -185,12 +185,14 @@ func demarer(nouveau):
 		adversaire=load("joueur.gd").new()
 		joueur.initialiserGrille(self,false,grilleX,grilleY,grilleSize)
 		adversaire.initialiserGrille(self,true,grilleX,grilleY,grilleSize)
-		gestionTexture.donnerOrdreAttaque(self,"LanceMissileSansRadar",joueur.ordreAttaqueLanceMissileSansRadar,ordreAttaqueLanceMissileSansRadarSprite,(grilleX+1)*grilleSize,carreBleueTexture)
-		gestionTexture.donnerOrdreAttaque(self,"LanceMissileAvecRadar",joueur.ordreAttaqueLanceMissileAvecRadar,ordreAttaqueLanceMissileAvecRadarSprite,(grilleX+2)*grilleSize,carreVertTexture)
+		gestionTexture.donnerOrdreAttaque(self,"LanceMissileSansRadar",ordreAttaqueLanceMissileSansRadarSprite,(grilleX+1)*grilleSize,carreBleueTexture)
+		gestionTexture.donnerOrdreAttaque(self,"LanceMissileAvecRadar",ordreAttaqueLanceMissileAvecRadarSprite,(grilleX+2)*grilleSize,carreVertTexture)
 		gestionTexture.ajouterChoixAmelioration(joueur,self,(grilleX+3)*grilleSize,grilleSize,joueur.ordreAmeliorations,ordreAmeliorationsSprite)
 
 		joueur.adversaire = adversaire
 		adversaire.adversaire = joueur
+		joueur.initOrdreAttaque(self)
+		adversaire.initOrdreAttaque(self)
 		adversaire.estAdversaire = true
 		joueur.estAdversaire = false
 		if (!nouveau):
@@ -232,6 +234,8 @@ func _process(delta):
 		joueur=tmp
 		adversaire.estAdversaire=true
 		joueur.estAdversaire=false
+		joueur.sauvegarder()
+		adversaire.sauvegarder()
 		return
 		
 	afficherNombre1(joueur.energie)

@@ -119,7 +119,7 @@ class GestionTextures:
 			sprite.set_scale(game.ajusterTexture(10,10,tex))
 			sprite.set_texture(tex)
 		
-	func donnerOrdreAttaque(game,nomBatiment,ordreAttaque,ordreAttaqueSprite,posX,carreTx):
+	func donnerOrdreAttaque(game,nomBatiment,ordreAttaqueSprite,posX,carreTx):
 		var i=0
 		var tg=game.grilleSize
 		var spritePremier=Sprite.new()
@@ -130,7 +130,6 @@ class GestionTextures:
 		spritePremier.set_pos(pos)
 		spritePremier.set_scale(game.ajusterTexture(10,10,texPremier))
 		for nom in nomBatiments:
-			ordreAttaque.push_back(nom)
 			var sprite =Sprite.new()
 			var tex=imageTextures[nomBatiments[i]]
 			sprite.set_texture(tex)
@@ -266,11 +265,13 @@ class LanceMissileSansRadar extends LanceMissile:
 class LanceMissileAvecRadar extends LanceMissile:
 	func afficherNom():
 		return "LanceMissileAvecRadar"
-
+	func impact(joueur):
+		missileDeplacement.bat.vie=0
 class LanceMissilePremiereLigne extends LanceMissile:
 	func afficherNom():
 		return "LanceMissilePremiereLigne"
-		
+	func impact(joueur):
+		missileDeplacement.bat.vie=0
 class Protecteur extends Batiment:
 	func afficherNom():
 		return "Protecteur"

@@ -16,7 +16,8 @@ var ordreAmeliorations= []
 var idxOrdreAmelioration=0
 var listeLaboratoireDisponible=[]
 var listeLanceMissileSansRadarDisponnible=[]
-var listeLanceMissileSansRadarEnDeplacement=[]
+var listeLanceMissileAvecRadarDisponnible=[]
+var listeLanceMissileEnDeplacement=[]
 var grille= {}
 var grilleInactif = {}
 var grilleProtege = {}
@@ -36,15 +37,23 @@ var parametrage=load("parametrage.gd").new()
 var adversaire
 var reconstruire=null
 var reconstructionPossible = false
+func initOrdreAttaque(game):
+	ordreAttaqueLanceMissileAvecRadar=[]
+	ordreAttaqueLanceMissileSansRadar=[]
+	for nomBatiment in game.gestionTexture.nomBatiments:
+		ordreAttaqueLanceMissileAvecRadar.push_back(nomBatiment)
+		ordreAttaqueLanceMissileSansRadar.push_back(nomBatiment)
+	
 func raz():
 	grille={}
 	reconstruire=null
 	listeLaboratoireDisponible=[]
 	listeLanceMissileSansRadarDisponnible=[]
-	listeLanceMissileSansRadarEnDeplacement=[]
+	listeLanceMissileEnDeplacement=[]
+	listeLanceMissileAvecRadarDisponnible=[]
 	idxAction=0
 	idxOrdreAmelioration=0
-	energie=250
+	energie=parametrage.energieJoueur
 	ameliorations=[]
 	nombreMerveille=0
 	nombreDeRadar=0
@@ -89,6 +98,7 @@ func charger():
 	var data = {}
 	data.parse_json(savegame.get_line())
 	ordreAmeliorations = data.ordreAmeliorations
+	energie=parametrage.energieJoueur
 	actions=[]
 	for a in data.actions:
 		if (a.type=="C"):
@@ -137,6 +147,26 @@ func position(x,y,game):
 
 	var r = Vector2(x*game.grilleSize+game.grilleSize/2,y*game.grilleSize+game.grilleSize/2)
 	return r
+func gererLanceMissileAvecRadar():
+	var bats =adversaire.batimentsParType()
+	var idxLanceMissile=0
+	var listeTmp=[]
+	for nomBatiment in ordreAttaqueLanceMissileAvecRadar:
+		if (bats.has(nomBatiment)):
+			var cibles = bats[nomBatiment]
+			for bat in cibles:
+				if (adversaire.grilleRadar.has(bat.clef()) && adversaire.grilleRadar[bat.clef()].is_visible()):
+					if (idxLanceMissile == listeLanceMissileAvecRadarDisponnible.size()):
+						listeLanceMissileSansRadarDisponnible=[]
+						return
+					var lanceMissile = listeLanceMissileAvecRadarDisponnible[idxLanceMissile]
+					idxLanceMissile+=1
+					lanceMissile.dirigerVers(grilleBatiment[lanceMissile.clef()],adversaire.grilleBatiment[bat.clef()].get_pos(),bat)
+					listeLanceMissileEnDeplacement.push_back(lanceMissile)
+	for i in range(idxLanceMissile,listeLanceMissileAvecRadarDisponnible.size()):
+		var bat=listeLanceMissileAvecRadarDisponnible[i]
+		listeTmp.push_back(bat)
+	listeLanceMissileAvecRadarDisponnible=listeTmp
 
 func gererLanceMissileSansRadar():
 	var bats =adversaire.batimentsParType()
@@ -150,7 +180,7 @@ func gererLanceMissileSansRadar():
 					var bat=cibles[idx]
 					lanceMissile.dirigerVers(grilleBatiment[lanceMissile.clef()],adversaire.grilleBatiment[bat.clef()].get_pos(),bat)
 					idx=idx+1
-					listeLanceMissileSansRadarEnDeplacement.push_back(lanceMissile)
+					listeLanceMissileEnDeplacement.push_back(lanceMissile)
 					if (idx == cibles.size()):
 						idx=0
 				listeLanceMissileSansRadarDisponnible=[]
@@ -393,10 +423,11 @@ func executer(game):
 			tmpListeLaboratoireDisponible.push_back(bat)
 	listeLaboratoireDisponible = tmpListeLaboratoireDisponible
 	gererLanceMissileSansRadar()
+	gererLanceMissileAvecRadar()
 	var listeTmp=[]
-	for lanceMissile in listeLanceMissileSansRadarEnDeplacement:
+	for lanceMissile in listeLanceMissileEnDeplacement:
 		lanceMissile.deplacer(self,listeTmp)
-	listeLanceMissileSansRadarEnDeplacement=listeTmp
+	listeLanceMissileEnDeplacement=listeTmp
 	tmpListeLaboratoireDisponible=[]
 	if (idxOrdreAmelioration < ordreAmeliorations.size()):
 		var nomBatimentPourAmelioration=ordreAmeliorations[idxOrdreAmelioration]
