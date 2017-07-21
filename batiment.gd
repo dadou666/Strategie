@@ -63,7 +63,10 @@ class BatimentRecharge extends Batiment:
 			return 0
 		return compteur
 	func init(joueur):
-		dureeCompteurRecharge=joueur.parametrage[afficherNom()].dureeCompteurRecharge
+		var param =joueur.parametrage[afficherNom()]
+		dureeCompteurRecharge=param.dureeCompteurRecharge
+		if (joueur.ameliorations.find(afficherNom()) >=0):
+			dureeCompteurRecharge=dureeCompteurRecharge-param.dureeCompteurRechargeAmelioration
 	func chiffresTexture(game):
 		if (compteur==0):
 			return game.chiffresTextureB
@@ -89,7 +92,10 @@ class BatimentRecharge extends Batiment:
 			if (compteurRecharge==0):
 				recharger(joueur)
 			var nomBatiment=afficherNom()
-			dureeCompteurRecharge=joueur.parametrage[nomBatiment].dureeCompteurRecharge
+			var param =joueur.parametrage[nomBatiment]
+			dureeCompteurRecharge=param.dureeCompteurRecharge
+			if (joueur.ameliorations.find(nomBatiment) >=0):
+				dureeCompteurRecharge=dureeCompteurRecharge-param.dureeCompteurRechargeAmelioration
 			return true
 		dureeCompteurRecharge=dureeCompteurRecharge-1
 		return false
@@ -267,18 +273,25 @@ class LanceMissileAvecRadar extends LanceMissile:
 		return "LanceMissileAvecRadar"
 	func impact(joueur):
 		missileDeplacement.bat.vie=0
+	func recharger(joueur):
+		joueur.listeLanceMissileAvecRadarDisponnible.push_back(self)
 class LanceMissilePremiereLigne extends LanceMissile:
 	func afficherNom():
 		return "LanceMissilePremiereLigne"
 	func impact(joueur):
 		missileDeplacement.bat.vie=0
+	func recharger(joueur):
+		joueur.listeLanceMissilePremiereLigneDisponnible.push_back(self)
 class Protecteur extends Batiment:
 	func afficherNom():
 		return "Protecteur"
 	func executer(joueur):
+		var rayon=1
+		if (joueur.ameliorations.find(afficherNom()) >=0):
+			rayon=2
 		if (estActif && compteur==0):
-			for ux in range(-1,2):
-				for uy in range(-1,2):
+			for ux in range(-rayon,rayon+1):
+				for uy in range(-rayon,rayon+1):
 					proteger(joueur,x+ux,y+uy)
 			estProtege=false
 

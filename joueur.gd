@@ -1,9 +1,11 @@
 extends Object
 
 var energie=1000
+var premiereConstruction=false
 var estAdversaire = false
 var imageTexture
 var nombreMerveille=0
+var nombreBatiment=0
 var nomJoueur=""
 var nombreDeRadar=0
 var listeConstructeur=[]
@@ -17,6 +19,7 @@ var idxOrdreAmelioration=0
 var listeLaboratoireDisponible=[]
 var listeLanceMissileSansRadarDisponnible=[]
 var listeLanceMissileAvecRadarDisponnible=[]
+var listeLanceMissilePremiereLigneDisponnible=[]
 var listeLanceMissileEnDeplacement=[]
 var grille= {}
 var grilleInactif = {}
@@ -46,6 +49,8 @@ func initOrdreAttaque(game):
 	
 func raz():
 	grille={}
+	nombreBatiment=0
+	premiereConstruction=false
 	reconstruire=null
 	listeLaboratoireDisponible=[]
 	listeLanceMissileSansRadarDisponnible=[]
@@ -167,6 +172,54 @@ func gererLanceMissileAvecRadar():
 		var bat=listeLanceMissileAvecRadarDisponnible[i]
 		listeTmp.push_back(bat)
 	listeLanceMissileAvecRadarDisponnible=listeTmp
+func gererLanceMissilePremiereLigne(game):
+	var grilleY=game.grilleY-1
+	var grilleX=game.grilleX
+	var cibles=[]
+	for i in range(0,grilleX):
+		var y=grilleY
+		while y>=0:
+			var clef = " " +str(i)+"_"+str(y)
+			y=y-1
+			if (adversaire.grilleBatiment.has(clef)):
+				var sb=adversaire.grilleBatiment[clef]
+				if (sb.is_visible()):
+					cibles.push_back(adversaire.grille[clef])
+					y=-1
+	var listTmp=[]
+	for lanceMissile in listeLanceMissilePremiereLigneDisponnible:
+		var spl=grilleBatiment[lanceMissile.clef()]
+		var cible= lePlusProche(cibles,spl.get_pos())
+		if (cible==null):
+			listTmp.push_back(lanceMissile)
+		else:
+			lanceMissile.dirigerVers(spl,adversaire.grilleBatiment[cible.clef()].get_pos(),cible)
+			listeLanceMissileEnDeplacement.push_back(lanceMissile)
+	listeLanceMissilePremiereLigneDisponnible=listTmp
+
+func lePlusProche(cibles,pos):
+	var dist=null
+	var rs=null
+	var idx=null
+	for i in range(0,cibles.size()):
+		var cible = cibles[i]
+		if (cible!=null):
+			var sb = adversaire.grilleBatiment[cible.clef()]
+			var distTmp =(sb.get_pos()-pos).length()
+			if (rs == null):
+				rs=cible
+				dist=distTmp
+				idx=i
+			else:
+				if (dist > distTmp):
+					rs=cible
+					dist=distTmp
+					idx=i
+	if (rs==null):
+		return null
+	cibles[idx]=null
+	return rs
+
 
 func gererLanceMissileSansRadar():
 	var bats =adversaire.batimentsParType()
@@ -191,10 +244,10 @@ func gererLanceMissileSansRadar():
 func creerBatiment(game,ix,iy,nomBatiment,reconstruction):
 	var clef = " " +str(ix)+"_"+str(iy)
 	var bat=null
-	if (reconstruction):
-		bat=grille[clef]
-	else:
-		bat = game.lib[nomBatiment].new()
+	if (!premiereConstruction):
+		nombreBatiment=1
+	premiereConstruction=true
+	bat = game.lib[nomBatiment].new()
 	
 	bat.init(self)
 	var spriteBatiment = donnerSprite(game,clef,grilleBatiment)
@@ -240,9 +293,11 @@ func ajouterConstruire(game,ix,iy,nomBatiment):
 	var spritePause = donnerSprite(game,clef,grillePause)
 	var spritePauseBat = donnerSprite(game,clef,grillePauseBat)
 	var spriteAttente = donnerSprite(game,clef,grilleAttente)
-	if (spriteAttente.is_visible()):
+	var spriteBatiment =donnerSprite(game,clef,grilleBatiment)
+	if (spriteAttente.is_visible() || spriteBatiment.is_visible() ):
 		return
-		
+	
+	
 	if (grille.has(clef)):
 		var bat=grille[clef]
 		if (bat.compteur > 0):
@@ -361,6 +416,7 @@ func activerRadar(game,n):
 
 func executer(game):
 	nombreDeRadar = 0
+	nombreBatiment =0
 	listeConstructeur=[]
 	listeReparateur=[]
 	if (periodeEnergie >= parametrage.periodeEnergie):
@@ -377,6 +433,8 @@ func executer(game):
 	for bat in grille.values():
 		if (bat.vie > 0):
 			bat.executer(self)
+			nombreBatiment+=nombreBatiment+1
+			
 			if (bat == batEnCoursDeConstruction && bat.compteur==0):
 					batEnCoursDeConstruction=null
 			if (bat.compteur()==0):
@@ -388,34 +446,36 @@ func executer(game):
 		else:
 			var spriteBatiment=grilleBatiment[bat.clef()]
 			if (spriteBatiment.is_visible()):
-				
 				for reparateur in listeReparateur:
 					if (reparateur.compterRecharge==0):
 						bat.reparer(self,reparateur)
 				if (bat.vie <=0):
 					spriteBatiment.hide()
-					donnerSprite(game,bat.clef(),grilleRecharge).hide()
+					donnerSprite(game,bat.clef(),grilleCompteur).hide()
 			else:
 				if (reconstruire==null):
 					reconstruire=action.Construire.new()
 					bat.reconstruction=true
 					reconstruire.x=bat.x
 					reconstruire.y=bat.y
-					reconstruire.reconstruire = true
-					reconstruire.nomBatiment = bat.nomBatiment
+					reconstruire.reconstruction = true
+					reconstruire.nomBatiment = bat.afficherNom()
 	
 	activer(game)
 	proteger(game)
 	if (reconstruire != null && reconstructionPossible):
 		if (reconstruire.executer(game,self)):
 			reconstruire=null
-	if (!reconstructionPossible):
+			reconstructionPossible=false
+	if (!reconstructionPossible || reconstruire==null):
 		if (idxAction < actions.size()):
 			actions[idxAction].executer(game,self)
 			
-	reconstructionPossible=!reconstructionPossible
+	
 	adversaire.activerRadar(game,nombreDeRadar)
 	if (nombreMerveille >= parametrage.nombreMerveillePourVictoire):
+		return true
+	if (adversaire.premiereConstruction && adversaire.nombreBatiment==0):
 		return true
 	var tmpListeLaboratoireDisponible=[]
 	for bat in listeLaboratoireDisponible:
@@ -424,6 +484,7 @@ func executer(game):
 	listeLaboratoireDisponible = tmpListeLaboratoireDisponible
 	gererLanceMissileSansRadar()
 	gererLanceMissileAvecRadar()
+	gererLanceMissilePremiereLigne(game)
 	var listeTmp=[]
 	for lanceMissile in listeLanceMissileEnDeplacement:
 		lanceMissile.deplacer(self,listeTmp)

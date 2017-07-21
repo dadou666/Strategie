@@ -7,8 +7,10 @@ class Construire:
 	func saveData():
 		return { type="C",x=x,y=y,nomBatiment=nomBatiment}
 	func executer(game,joueur):
+		
 		var energie=joueur.parametrage[nomBatiment].energie
-		if (joueur.energie < energie ):
+		var energieJoueur=joueur.energie
+		if (energieJoueur < energie ):
 				var clef = " " +str(x)+"_"+str(y)
 				var spritePause = joueur.donnerSprite(game,clef,joueur.grillePause)
 				var spritePauseBat = joueur.donnerSprite(game,clef,joueur.grillePauseBat)
@@ -35,6 +37,7 @@ class Construire:
 		if (joueur.batEnCoursDeConstruction==null):
 			joueur.energie-=energie
 			joueur.batEnCoursDeConstruction=joueur.creerBatiment(game,x,y,nomBatiment,reconstruction)
+			joueur.reconstructionPossible=true
 			if (!reconstruction):
 				joueur.idxAction+=1
 			return true
@@ -44,6 +47,7 @@ class Construire:
 				bat.compteurRecharge=9
 				joueur.energie-=energie
 				joueur.creerBatiment(game,x,y,nomBatiment,reconstruction)
+				joueur.reconstructionPossible=true
 				if (!reconstruction):
 					joueur.idxAction+=1
 				return true
