@@ -3,6 +3,7 @@ extends Object
 var energie=1000
 var premiereConstruction=false
 var estAdversaire = false
+
 var imageTexture
 var nombreMerveille=0
 var nombreBatiment=0
@@ -33,6 +34,7 @@ var grilleRecharge={}
 var grilleAttente={}
 var actions=[]
 var periodeEnergie=0
+var nombreAction=0
 var idxAction=0
 var batiment = preload("batiment.gd")
 var action = preload("action.gd")
@@ -49,6 +51,7 @@ func initOrdreAttaque(game):
 	
 func raz():
 	grille={}
+	nombreAction=0
 	nombreBatiment=0
 	premiereConstruction=false
 	reconstruire=null
@@ -160,7 +163,7 @@ func gererLanceMissileAvecRadar():
 		if (bats.has(nomBatiment)):
 			var cibles = bats[nomBatiment]
 			for bat in cibles:
-				if (!bat.estCible&&adversaire.grilleRadar.has(bat.clef()) && adversaire.grilleRadar[bat.clef()].is_visible()):
+				if (bat.compteur==0&&!bat.estCible&&adversaire.grilleRadar.has(bat.clef()) && adversaire.grilleRadar[bat.clef()].is_visible()):
 					if (idxLanceMissile == listeLanceMissileAvecRadarDisponnible.size()):
 						listeLanceMissileSansRadarDisponnible=[]
 						return
@@ -203,7 +206,7 @@ func lePlusProche(cibles,pos):
 	var idx=null
 	for i in range(0,cibles.size()):
 		var cible = cibles[i]
-		if (cible!=null && !cible.estCible):
+		if (cible!=null && !cible.estCible && !cible.estProtege && cible.compteur==0):
 			var sb = adversaire.grilleBatiment[cible.clef()]
 			var distTmp =(sb.get_pos()-pos).length()
 			if (rs == null):
@@ -231,7 +234,7 @@ func gererLanceMissileSansRadar():
 				for lanceMissile in listeLanceMissileSansRadarDisponnible:
 					
 					var bat=cibles[idx]
-					if (!bat.estCible):
+					if (!bat.estCible && bat.compteur==0):
 						lanceMissile.dirigerVers(grilleBatiment[lanceMissile.clef()],adversaire.grilleBatiment[bat.clef()].get_pos(),bat)
 					idx=idx+1
 					listeLanceMissileEnDeplacement.push_back(lanceMissile)
@@ -275,18 +278,29 @@ func creerBatiment(game,ix,iy,nomBatiment,reconstruction):
 	var spriteAttente = donnerSprite(game,clef,grilleAttente)
 	spriteAttente.hide()
 	return bat
-
+func gererRepriseActions():
+	if (idxAction >= nombreAction):
+		var tmpActions = []
+		for i in range(0,idxAction):
+			tmpActions.push_back(actions[i])
+		nombreAction=tmpActions.size()
+		actions=tmpActions
 func ajouterOrdreAttaqueSansRadar(nomBatiment , priorite):
 	var ordreAttaque = action.OrdreAttaqueSansRadar.new()
 	ordreAttaque.priorite =priorite
 	ordreAttaque.nomBatiment=nomBatiment
+	gererRepriseActions()
 	actions.push_back(ordreAttaque)
+	nombreAction += 1
+	
 
 func ajouterOrdreAttaqueAvecRadar(nomBatiment , priorite):
 	var ordreAttaque = action.OrdreAttaqueAvecRadar.new()
 	ordreAttaque.priorite =priorite
 	ordreAttaque.nomBatiment=nomBatiment
+	gererRepriseActions()
 	actions.push_back(ordreAttaque) 
+	nombreAction += 1
 	
 	
 func ajouterConstruire(game,ix,iy,nomBatiment):
@@ -309,7 +323,9 @@ func ajouterConstruire(game,ix,iy,nomBatiment):
 	construire.nomBatiment = nomBatiment
 	construire.x=ix
 	construire.y=iy
+	gererRepriseActions()
 	actions.push_back(construire)
+	nombreAction += 1
 	var tx =game.gestionTexture.imageTextures[nomBatiment]
 	var pos=position(ix,iy,game)
 	pos=pos+Vector2(-20,20)
@@ -388,8 +404,8 @@ func proteger(game):
 		if (!spriteProtege.is_visible() && bat.estProtege && bat.compteur==0):
 			var sprite = spriteProtege
 			var pos=position(bat.x,bat.y,game)
-			pos.x+=25
-			pos.y+=25
+			pos.x+=-25
+			pos.y+=-25
 			sprite.set_pos(pos)
 			var tx = game.gestionTexture.imageTextures["Protecteur"]
 			sprite.set_texture(tx)

@@ -21,6 +21,7 @@ var chiffresTextureA=[]
 var chiffresTextureB=[]
 var chiffresTextureC=[]
 var carreVertTexture
+
 var carreBleueTexture
 var nombre1=[]
 var parametrage=load("parametrage.gd")
@@ -83,12 +84,14 @@ func _input(ev):
 			var nomBatiment =gestionTexture.nomBatiments[idxSelection-1]
 
 			joueur.ajouterOrdreAttaqueAvecRadar(nomBatiment,iy-1)
+
 			return
 		if (ix ==grilleX+1):
 			if (iy >= gestionTexture.nomBatiments.size()+1 || iy ==0):
 				return
 			var nomBatiment =gestionTexture.nomBatiments[idxSelection-1]
 			joueur.ajouterOrdreAttaqueSansRadar(nomBatiment,iy-1)
+
 			return
 		if (iy >= grilleY):
 			return
@@ -117,6 +120,7 @@ func _input(ev):
 		var nomBatiment = gestionTexture.nomBatiments[idxSelection-1];
 
 		joueur.ajouterConstruire(self,ix,iy,nomBatiment)
+
 
 
 func _ready():
