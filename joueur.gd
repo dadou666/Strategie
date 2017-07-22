@@ -160,7 +160,7 @@ func gererLanceMissileAvecRadar():
 		if (bats.has(nomBatiment)):
 			var cibles = bats[nomBatiment]
 			for bat in cibles:
-				if (adversaire.grilleRadar.has(bat.clef()) && adversaire.grilleRadar[bat.clef()].is_visible()):
+				if (!bat.estCible&&adversaire.grilleRadar.has(bat.clef()) && adversaire.grilleRadar[bat.clef()].is_visible()):
 					if (idxLanceMissile == listeLanceMissileAvecRadarDisponnible.size()):
 						listeLanceMissileSansRadarDisponnible=[]
 						return
@@ -203,7 +203,7 @@ func lePlusProche(cibles,pos):
 	var idx=null
 	for i in range(0,cibles.size()):
 		var cible = cibles[i]
-		if (cible!=null):
+		if (cible!=null && !cible.estCible):
 			var sb = adversaire.grilleBatiment[cible.clef()]
 			var distTmp =(sb.get_pos()-pos).length()
 			if (rs == null):
@@ -231,7 +231,8 @@ func gererLanceMissileSansRadar():
 				for lanceMissile in listeLanceMissileSansRadarDisponnible:
 					
 					var bat=cibles[idx]
-					lanceMissile.dirigerVers(grilleBatiment[lanceMissile.clef()],adversaire.grilleBatiment[bat.clef()].get_pos(),bat)
+					if (!bat.estCible):
+						lanceMissile.dirigerVers(grilleBatiment[lanceMissile.clef()],adversaire.grilleBatiment[bat.clef()].get_pos(),bat)
 					idx=idx+1
 					listeLanceMissileEnDeplacement.push_back(lanceMissile)
 					if (idx == cibles.size()):
@@ -339,8 +340,8 @@ func creerSpriteCompteur(game,bat,chiffresTexture):
 	var dimCompteur = bat.dimCompteur()
 	spriteCompteur.set_scale(game.ajusterTexture(dimCompteur,dimCompteur,txChiffre))
 	var posCpt=position(bat.x,bat.y,game)
-	spriteCompteur.set_pos(posCpt+Vector2(10,10))
-	spriteCompteur.set_z(4)
+	spriteCompteur.set_pos(posCpt+Vector2(15,15))
+	spriteCompteur.set_z(6)
 	spriteCompteur.show()
 	var clef = " " +str(bat.x)+"_"+str(bat.y)
 	var spritePause = donnerSprite(game,clef,grillePause)
@@ -507,11 +508,11 @@ func executer(game):
 	return false
 func initialiserGrille(game,ea,grilleX,grilleY,tg):
 	estAdversaire =ea
-	imageTexture=ImageTexture.new()
+	
 	if (estAdversaire):
-		imageTexture.load("carreGris.png")
+		imageTexture =load("carreGris.png")
 	else:
-		imageTexture.load("carre.png")
+		imageTexture=load("carre.png")
 	var deltat=0
 	var ts = imageTexture.get_size()
 	var scaleX =(game.grilleSize)/ ts.x

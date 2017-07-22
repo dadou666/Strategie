@@ -6,6 +6,7 @@ class Batiment:
 	var estProtege = false
 	var compteur=9
 	var dureeCompteur=50
+	var estCible=false
 	var x=0
 	var y=0
 	func reparer(joueur,reparateur):
@@ -111,10 +112,7 @@ class GestionTextures:
 	func imageTexture(bat):
 		return imageTextures[bat.afficherNom()]
 	func chargerImageTexture(nomBatiment):
-		var it = ImageTexture.new()
-		var chemin = "batiment/"+nomBatiment+".png"
-		#print(chemin)
-		it.load("batiment/"+nomBatiment+".png")
+		var it = load("batiment/"+nomBatiment+".png")
 		
 		imageTextures[nomBatiment]=it
 	func modifierOrdreAttaque(game,ordreAttaque,ordreAttaqueSprite,posX):
@@ -240,6 +238,7 @@ class LanceMissile extends BatimentRecharge:
 	func dirigerVers(sprite, pos,bat ):
 		missileDeplacement=MissileDeplacement.new()
 		missileDeplacement.vitesse=2.0
+		bat.estCible=true
 		var direction= pos-sprite.get_pos()
 		missileDeplacement.spriteInitPos = sprite.get_pos()
 		missileDeplacement.distance =direction.length()
@@ -254,6 +253,7 @@ class LanceMissile extends BatimentRecharge:
 	func deplacer(joueur,liste):
 		if (missileDeplacement.deplacer()):
 			compteurRecharge=9
+			missileDeplacement.bat.estCible = false
 			impact(joueur)
 			return true
 		liste.push_back(self)
@@ -306,7 +306,7 @@ class Controlleur extends Batiment:
 	func afficherNom():
 		return "Controlleur"
 	func activer(joueur):
-		if (compteur==0):
+		if (compteur==0 && vie > 0):
 			activerPos(joueur,x,y)
 	func activerPos(joueur,px,py):
 		if (joueur.contient(px,py)):

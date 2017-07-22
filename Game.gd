@@ -16,7 +16,7 @@ var croixTexture
 var cibleRadarTexture
 var okTexture
 var pauseTexture
-var selectSprite
+var selectSprite=preload("select.png")
 var chiffresTextureA=[]
 var chiffresTextureB=[]
 var chiffresTextureC=[]
@@ -125,37 +125,27 @@ func _ready():
 
   
 func initialiserTextures():
-	selectSprite=ImageTexture.new()
-	selectSprite.load("select.png")
-	itSelection =ImageTexture.new()
-	itSelection.load("carreSelection.png")
+	#selectSprite=ImageTexture.new()
+	#selectSprite.load("select.png")
+	itSelection =load("carreSelection.png")
 	gestionTexture=lib.GestionTextures.new()
 	gestionTexture.chargerImageTextures()
-	croixTexture = ImageTexture.new()
-	croixTexture.load("croix.png")
-	carreVertTexture=ImageTexture.new()
-	carreVertTexture.load("carreVert.png")
-	carreBleueTexture = ImageTexture.new()
-	carreBleueTexture.load("carreBleue.png")
-	okTexture = ImageTexture.new()
-	okTexture.load("ok.png")
+	croixTexture =load("croix.png")
+	carreVertTexture=load("carreVert.png")
+	carreBleueTexture =load("carreBleue.png")
+	okTexture = load("ok.png")
 	
 	for i in range(10):
-		var tx = ImageTexture.new()
-		tx.load("chiffres/A"+str(i)+".png")
+		var tx =load("chiffres/A"+str(i)+".png")
 		chiffresTextureA.push_back(tx)
 	for i in range(10):
-		var tx = ImageTexture.new()
-		tx.load("chiffres/B"+str(i)+".png")
+		var tx = load("chiffres/B"+str(i)+".png")
 		chiffresTextureB.push_back(tx)
 	for i in range(10):
-		var tx = ImageTexture.new()
-		tx.load("chiffres/C"+str(i)+".png")
+		var tx =load("chiffres/C"+str(i)+".png")
 		chiffresTextureC.push_back(tx)
-	cibleRadarTexture=ImageTexture.new()
-	cibleRadarTexture.load("cibleLanceMissile.png")
-	pauseTexture=ImageTexture.new()
-	pauseTexture.load("pause.png")
+	cibleRadarTexture=load("cibleLanceMissile.png")
+	pauseTexture=load("pause.png")
 	
 func demarer(nouveau):
 	get_parent().get_node("Loose").hide()
