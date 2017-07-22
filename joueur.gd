@@ -368,19 +368,10 @@ func creerSpriteCompteur(game,bat,chiffresTexture):
 
 
 func activer(game):
-	for key in grilleInactif.keys():
-		if (grille.has(key)):
-			var bat=grille[key]
-			if (bat.estActif):
-				var spriteInactif = donnerSprite(game,key,grilleInactif)
-				spriteInactif.hide()
-		else:
-			var spriteInactif = donnerSprite(game,key,grilleInactif)
-			spriteInactif.hide()
 	for key in grille.keys():
 		var bat= grille[key]
 		var spriteInactif = donnerSprite(game,key,grilleInactif)
-		if (!spriteInactif.is_visible() && !bat.estActif && bat.compteur==0):
+		if (!bat.estActif && bat.compteur==0 && bat.vie >0):
 			var sprite = spriteInactif
 			var pos=position(bat.x,bat.y,game)
 			sprite.set_pos(pos)
@@ -388,30 +379,27 @@ func activer(game):
 			sprite.set_scale(game.ajusterTexture(10,10,game.croixTexture))
 			sprite.set_z(3)
 			sprite.show()
+		else:
+			spriteInactif.hide()
 
 
 func proteger(game):
-	for key in grilleProtege.keys():
-		if (grille.has(key)):
-			var bat=grille[key]
-			if (!bat.estProtege):
-				grilleProtege[key].hide()
-		else:
-			grilleProtege[key].hide()
 	for key in grille.keys():
 		var bat= grille[key]
 		var spriteProtege = donnerSprite(game,key,grilleProtege)
-		if (!spriteProtege.is_visible() && bat.estProtege && bat.compteur==0):
+		if ( bat.estProtege && bat.compteur==0 && bat.vie > 0 && bat.afficherNom()!="Protecteur"):
 			var sprite = spriteProtege
 			var pos=position(bat.x,bat.y,game)
-			pos.x+=-25
-			pos.y+=-25
+			pos.x+=-20
+			pos.y+=-20
 			sprite.set_pos(pos)
 			var tx = game.gestionTexture.imageTextures["Protecteur"]
 			sprite.set_texture(tx)
-			sprite.set_scale(game.ajusterTexture(30,30,tx))
+			sprite.set_scale(game.ajusterTexture(45,45,tx))
 			sprite.set_z(3)
 			sprite.show()
+		else:
+			spriteProtege.hide()
 			
 func activerRadar(game,n):
 	for bat in grille.values():
@@ -469,6 +457,7 @@ func executer(game):
 				if (bat.vie <=0):
 					spriteBatiment.hide()
 					donnerSprite(game,bat.clef(),grilleCompteur).hide()
+					donnerSprite(game,bat.clef(),grilleInactif).hide()
 			else:
 				if (reconstruire==null):
 					reconstruire=action.Construire.new()

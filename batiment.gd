@@ -285,21 +285,20 @@ class LanceMissilePremiereLigne extends LanceMissile:
 class Protecteur extends Batiment:
 	func afficherNom():
 		return "Protecteur"
-	func executer(joueur):
+	func activer(joueur):
 		var rayon=1
 		if (joueur.ameliorations.find(afficherNom()) >=0):
 			rayon=2
-		if (estActif && compteur==0):
+		if (estActif && compteur==0 && vie > 0):
 			for ux in range(-rayon,rayon+1):
 				for uy in range(-rayon,rayon+1):
 					proteger(joueur,x+ux,y+uy)
-			estProtege=false
+			estProtege=true
 
 	func proteger(joueur,px,py):
 		if (joueur.contient(px,py)):
 			var bat = joueur.donnerBatiment(px,py)
-			if (bat.afficherNom() != "Protecteur"):
-				bat.estProtege=true
+			bat.estProtege=true
 
 
 class Controlleur extends Batiment:
