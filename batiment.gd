@@ -3,12 +3,32 @@ class Batiment:
 	var vie=0
 	var reconstruction=false
 	var estActif = false
-	var estProtege = false
 	var compteur=9
 	var dureeCompteur=50
+	var estProtege= false
 	var estCible=false
 	var x=0
 	var y=0
+	func estProtege(grille,joueur):
+		var rayon=1
+		if (joueur.ameliorations.find(afficherNom()) >=0):
+			rayon=2
+		estProtege = false
+		if (afficherNom()=="Protecteur"):
+			estProtege = true
+			return false
+		for ux in range(-rayon,rayon+1):
+			for uy in range(-rayon,rayon+1):
+				var clef = " " +str(x+ux)+"_"+str(y+uy)
+				
+				if (grille.has(clef)):
+					var bat = grille[clef]
+					if (bat.afficherNom() == "Protecteur" && bat.vie > 0 && bat.compteur == 0):
+						estProtege=true
+						return true
+		return false
+	func peutEtreCible():
+		return true
 	func reparer(joueur,reparateur):
 		var vieMax=joueur.parametrage[afficherNom()].vie
 		if (vie < vieMax):
@@ -235,6 +255,8 @@ class MissileDeplacement:
 		return false
 class LanceMissile extends BatimentRecharge:
 	var missileDeplacement
+	func peutEtreCible():
+		return missileDeplacement==null
 	func dirigerVers(sprite, pos,bat ):
 		missileDeplacement=MissileDeplacement.new()
 		missileDeplacement.vitesse=2.0
@@ -251,6 +273,8 @@ class LanceMissile extends BatimentRecharge:
 		
 		pass
 	func deplacer(joueur,liste):
+		if (missileDeplacement == null):
+			return true
 		if (missileDeplacement.deplacer()):
 			compteurRecharge=9
 			missileDeplacement.bat.estCible = false
@@ -285,20 +309,6 @@ class LanceMissilePremiereLigne extends LanceMissile:
 class Protecteur extends Batiment:
 	func afficherNom():
 		return "Protecteur"
-	func activer(joueur):
-		var rayon=1
-		if (joueur.ameliorations.find(afficherNom()) >=0):
-			rayon=2
-		if (estActif && compteur==0 && vie > 0):
-			for ux in range(-rayon,rayon+1):
-				for uy in range(-rayon,rayon+1):
-					proteger(joueur,x+ux,y+uy)
-			estProtege=true
-
-	func proteger(joueur,px,py):
-		if (joueur.contient(px,py)):
-			var bat = joueur.donnerBatiment(px,py)
-			bat.estProtege=true
 
 
 class Controlleur extends Batiment:

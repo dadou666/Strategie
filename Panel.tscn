@@ -105,15 +105,15 @@ textures/normal = ExtResource( 6 )
 params/resize_mode = 0
 params/stretch_mode = 0
 
-[connection signal="pressed" from="demarer" to="." method="_on_TextureButton_pressed"]
+[connection signal="pressed" from="demarer" to="partie" method="_on_demarer_pressed"]
 
 [connection signal="pressed" from="demarer" to="." method="_on_demarer_pressed"]
 
-[connection signal="pressed" from="demarer" to="partie" method="_on_demarer_pressed"]
-
-[connection signal="pressed" from="partie/sortir" to="." method="_on_sortir_pressed"]
+[connection signal="pressed" from="demarer" to="." method="_on_TextureButton_pressed"]
 
 [connection signal="pressed" from="partie/sortir" to="partie" method="_on_sortir_pressed"]
+
+[connection signal="pressed" from="partie/sortir" to="." method="_on_sortir_pressed"]
 
 [connection signal="pressed" from="nouveau" to="partie" method="_on_nouveau_pressed"]
 

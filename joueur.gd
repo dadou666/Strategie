@@ -75,6 +75,7 @@ func raz():
 		sp.hide()
 	for sp in grilleBatiment.values():
 		sp.hide()
+		sp.set_rot(0.0)
 	for sp in grilleAttente.values():
 		sp.hide()
 	for sp in grilleProtege.values():
@@ -163,7 +164,7 @@ func gererLanceMissileAvecRadar():
 		if (bats.has(nomBatiment)):
 			var cibles = bats[nomBatiment]
 			for bat in cibles:
-				if (bat.compteur==0&&!bat.estCible&&adversaire.grilleRadar.has(bat.clef()) && adversaire.grilleRadar[bat.clef()].is_visible()):
+				if (bat.peutEtreCible() && bat.compteur==0&&!bat.estCible&&adversaire.grilleRadar.has(bat.clef()) && adversaire.grilleRadar[bat.clef()].is_visible()):
 					if (idxLanceMissile == listeLanceMissileAvecRadarDisponnible.size()):
 						listeLanceMissileSansRadarDisponnible=[]
 						return
@@ -206,7 +207,7 @@ func lePlusProche(cibles,pos):
 	var idx=null
 	for i in range(0,cibles.size()):
 		var cible = cibles[i]
-		if (cible!=null && !cible.estCible && !cible.estProtege && cible.compteur==0):
+		if (cible!=null && !cible.estCible && cible.peutEtreCible() && !cible.estProtege && cible.compteur==0):
 			var sb = adversaire.grilleBatiment[cible.clef()]
 			var distTmp =(sb.get_pos()-pos).length()
 			if (rs == null):
@@ -234,7 +235,7 @@ func gererLanceMissileSansRadar():
 				for lanceMissile in listeLanceMissileSansRadarDisponnible:
 					
 					var bat=cibles[idx]
-					if (!bat.estCible && bat.compteur==0):
+					if (!bat.estCible && bat.compteur==0 && bat.peutEtreCible()):
 						lanceMissile.dirigerVers(grilleBatiment[lanceMissile.clef()],adversaire.grilleBatiment[bat.clef()].get_pos(),bat)
 					idx=idx+1
 					listeLanceMissileEnDeplacement.push_back(lanceMissile)
@@ -387,7 +388,7 @@ func proteger(game):
 	for key in grille.keys():
 		var bat= grille[key]
 		var spriteProtege = donnerSprite(game,key,grilleProtege)
-		if ( bat.estProtege && bat.compteur==0 && bat.vie > 0 && bat.afficherNom()!="Protecteur"):
+		if ( bat.estProtege(grille,self)):
 			var sprite = spriteProtege
 			var pos=position(bat.x,bat.y,game)
 			pos.x+=-20
